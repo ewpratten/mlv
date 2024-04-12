@@ -5,7 +5,7 @@ mod parse;
 
 use std::{
     io::BufRead,
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex}, time::Duration,
 };
 
 use clap::Parser;
@@ -151,7 +151,7 @@ pub fn main() {
                     let mut table = TableBuilder::new(ui)
                         .cell_layout(Layout::default().with_main_wrap(false))
                         .vscroll(true)
-                        .striped(true)
+                        .striped(!args.no_stripes)
                         .stick_to_bottom(true)
                         .drag_to_scroll(false)
                         .max_scroll_height(window_height)
@@ -195,6 +195,11 @@ pub fn main() {
                     });
                 });
         });
+
+        // End each frame by scheduling a repaint in the future to keep data fresh-ish
+        if is_data_live.load(std::sync::atomic::Ordering::SeqCst) {
+            ctx.request_repaint_after(Duration::from_millis(500));
+        }
     })
     .unwrap();
 }

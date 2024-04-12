@@ -24,6 +24,10 @@ pub struct Args {
     #[arg(short, long, default_value = "dark")]
     pub theme: Themes,
 
+    /// Disable line stripes
+    #[arg(long)]
+    pub no_stripes: bool,
+
     /// Enable verbose logging
     #[arg(short, long)]
     pub verbose: bool,
