@@ -1,13 +1,13 @@
 [package]
-name = "<crate_name>"
+name = "mini-log-viewer"
 version = "0.1.0"
 authors = ["Evan Pratten <ewpratten@gmail.com>"]
 edition = "2021"
 description = "<description>"
-documentation = "https://docs.rs/<crate_name>"
+documentation = "https://docs.rs/mini-log-viewer"
 readme = "README.md"
-homepage = "https://github.com/ewpratten/<repo_name>"
-repository = "https://github.com/ewpratten/<repo_name>"
+homepage = "https://github.com/ewpratten/mlv"
+repository = "https://github.com/ewpratten/mlv"
 license = "GPL-3.0"
 keywords = []
 categories = []
@@ -15,9 +15,12 @@ categories = []
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-
+clap = { version = "4.5.4", features = ["derive"] }
+eframe = "0.27.2"
+egui_extras = "0.27.2"
+fern = "0.6.2"
+log = "0.4.21"
 
 [[bin]]
-name = "<crate_name>"
+name = "mlv"
 path = "src/main.rs"
-
