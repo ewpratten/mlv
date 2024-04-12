@@ -1,6 +1,6 @@
 [package]
 name = "mini-log-viewer"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["Evan Pratten <ewpratten@gmail.com>"]
 edition = "2021"
 description = "<description>"
@@ -9,10 +9,8 @@ readme = "README.md"
 homepage = "https://github.com/ewpratten/mlv"
 repository = "https://github.com/ewpratten/mlv"
 license = "GPL-3.0"
-keywords = []
-categories = []
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+keywords = ["logs", "log-viewer"]
+categories = ["development-tools", "visualization"]
 
 [dependencies]
 clap = { version = "4.5.4", features = ["derive"] }
