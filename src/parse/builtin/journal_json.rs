@@ -65,7 +65,7 @@ pub fn parse_line(line: &str) -> Option<ParsedLine> {
             7 => RichText::new("DEBUG").color(Color32::LIGHT_BLUE),
             _ => RichText::new("UNKNOWN").color(Color32::GRAY),
         },
-        RichText::new(entry.unit.unwrap_or_default()).color(Color32::DARK_GREEN),
+        RichText::new(entry.unit.unwrap_or_default()),
         RichText::new(entry.identifier.unwrap_or_default()).color(Color32::LIGHT_GREEN),
         RichText::new(pid.to_string()).color(Color32::LIGHT_BLUE),
         RichText::new(entry.message).color(Color32::WHITE).weak(),
