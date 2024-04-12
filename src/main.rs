@@ -80,7 +80,9 @@ pub fn main() {
 
             // Parse the line
             let parsed_line = args.parser.parse_line(&line);
-            parsed_file.add_line(parsed_line);
+            if let Some(parsed_line) = parsed_line {
+                parsed_file.add_line(parsed_line);
+            }
         }
         log::debug!("File closed");
     });

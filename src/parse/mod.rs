@@ -8,13 +8,16 @@ use eframe::egui::{Label, RichText};
 pub enum FileParsers {
     /// Space-separated values
     Spaces,
+    /// Comma-separated values
+    Csv,
 }
 
 impl FileParsers {
     /// Parse a line using the selected parser
-    pub fn parse_line(&self, line: &str) -> ParsedLine {
+    pub fn parse_line(&self, line: &str) -> Option<ParsedLine> {
         match self {
             FileParsers::Spaces => builtin::spaces::parse_line(line),
+            FileParsers::Csv => builtin::csv::parse_line(line),
         }
     }
 }
