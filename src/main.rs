@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod cli;
+mod parse;
 
 use std::{
     io::BufRead,
@@ -43,12 +44,10 @@ pub fn main() {
     };
 
     // Allocate a shared 2D array to store log rows
-    let mut log_rows: Arc<Mutex<Vec<Vec<String>>>> = Arc::new(Mutex::new(Vec::new()));
-    let mut col_max_widths: Arc<Mutex<Vec<usize>>> = Arc::new(Mutex::new(Vec::new()));
+    let parsed_file = Arc::new(Mutex::new(parse::ParsedPartialFile::new()));
 
-    // Start a thread that reads from the file and updates the log_rows
-    let log_rows_clone = log_rows.clone();
-    let col_max_widths_clone = col_max_widths.clone();
+    // Start a thread that reads from the file and updates the parsed file in memory
+    let parsed_file_clone = parsed_file.clone();
     std::thread::spawn(move || {
         // Either read from a file or stdin
         let file_reader = if let Some(file) = args.file {
@@ -76,32 +75,18 @@ pub fn main() {
                 continue;
             }
 
-            // TEMP: Split the line on spaces
-            let row_cells: Vec<String> = line.split_whitespace().map(|s| s.to_string()).collect();
+            // Get a lock on the parsed file
+            let mut parsed_file = parsed_file_clone.lock().unwrap();
 
-            // Update the column widths
-            let mut col_max_widths = col_max_widths_clone.lock().unwrap();
-            if col_max_widths.is_empty() {
-                col_max_widths.extend(std::iter::repeat(0).take(row_cells.len()));
-            }
-            let col_count = col_max_widths.len();
-            if col_count < row_cells.len() {
-                col_max_widths.extend(std::iter::repeat(0).take(row_cells.len() - col_count));
-            }
-            for (i, cell) in row_cells.iter().enumerate() {
-                col_max_widths[i] = col_max_widths[i].max(cell.len());
-            }
-
-            let mut log_rows = log_rows_clone.lock().unwrap();
-            log_rows.push(row_cells);
-            log::debug!("Line");
+            // Parse the line
+            let parsed_line = args.parser.parse_line(&line);
+            parsed_file.add_line(parsed_line);
         }
         log::debug!("File closed");
     });
 
     // Start the render task
     eframe::run_simple_native("Mini Log Viewer", options, move |ctx, _frame| {
-
         // Top bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             egui::menu::bar(ui, |ui| {
@@ -120,32 +105,22 @@ pub fn main() {
                 .auto_shrink(false)
                 .show(ui, |ui| {
                     // To auto-generate the table, we need access to the log
-                    let log_rows = log_rows.clone();
+                    let parsed_file = parsed_file.clone();
+                    let parsed_file = parsed_file.lock().unwrap();
 
                     // If the row count is still `None` we don't need to render anything yet because there is no data
-                    let col_max_widths = col_max_widths.lock().unwrap();
-                    let col_count = col_max_widths.len();
-                    if col_count == 0 {
+                    if parsed_file.len() == 0 {
                         return;
                     }
-                    log::debug!("Col count: {:?}", col_count);
 
-                    // We need to solve the widths of the columns before we can render the table
-                    let mut fake_ui = Ui::new(ctx.clone(), LayerId::background(), Id::new("fake_ui"), ui.max_rect(), ui.clip_rect());
-                    let column_widths = col_max_widths
-                        .iter()
-                        .map(|char_count| {
-                            // Generate a fake label to fill with text
-                            let label =
-                                Label::new(RichText::new("A".repeat(*char_count))).wrap(false);
-
-                            // Lay it out in order to figure out its size
-                            let (position, layout, _) = label.layout_in_ui(&mut fake_ui);
-
-                            // Return the width of the label
-                            layout.size().x
-                        })
-                        .collect::<Vec<f32>>();
+                    // Set up a fake UI for us to render to for sizing
+                    let mut fake_ui = Ui::new(
+                        ctx.clone(),
+                        LayerId::background(),
+                        Id::new("fake_ui"),
+                        ui.max_rect(),
+                        ui.clip_rect(),
+                    );
 
                     // Begin basic configuration for a table
                     let window_height = ui.max_rect().height();
@@ -158,26 +133,29 @@ pub fn main() {
                         .max_scroll_height(window_height)
                         .auto_shrink(false);
 
+                    // Get the maximum width of each column
+                    let column_widths = parsed_file.column_max_widths(&mut fake_ui);
+
                     // Auto-create columns
                     for col_width in column_widths.iter() {
                         table = table.column(Column::exact(*col_width));
                     }
 
                     // Fill in the table body
-                    table.body(|mut body| {
+                    table.body(|body| {
                         // Render each row
-                        let log_rows = log_rows.lock().unwrap();
-                        body.rows(30.0, log_rows.len(), |mut row| {
+                        body.rows(30.0, parsed_file.len(), |mut row| {
                             let row_index = row.index();
-                            let log_row = &log_rows[row_index];
-                            for cell_index in 0..col_count {
+                            let log_row = parsed_file.get_line(row_index).unwrap();
+                            for cell_index in 0..parsed_file.column_count() {
                                 // If a cell doesn't exist, just render an empty cell
                                 let cell = log_row
+                                    .cells()
                                     .get(cell_index)
-                                    .map(|s| s.to_string())
-                                    .unwrap_or(String::new());
+                                    .unwrap_or(&RichText::new(String::new()))
+                                    .clone();
                                 row.col(|ui| {
-                                    let label = Label::new(RichText::new(cell)).wrap(false);
+                                    let label = Label::new(cell).wrap(false);
                                     ui.add(label);
                                 });
                             }
