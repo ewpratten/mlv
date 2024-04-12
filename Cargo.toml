@@ -1,9 +1,9 @@
 [package]
 name = "mini-log-viewer"
-version = "1.0.0"
+version = "1.0.1"
 authors = ["Evan Pratten <ewpratten@gmail.com>"]
 edition = "2021"
-description = "<description>"
+description = "Mini Log Viewer"
 documentation = "https://docs.rs/mini-log-viewer"
 readme = "README.md"
 homepage = "https://github.com/ewpratten/mlv"
