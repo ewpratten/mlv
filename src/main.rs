@@ -10,7 +10,7 @@ use std::{
 
 use clap::Parser;
 use cli::Args;
-use eframe::egui::{self, FontDefinitions, FontFamily, Id, Label, LayerId, Layout, RichText, Ui};
+use eframe::egui::{self, Id, Label, LayerId, Layout, RichText, Ui};
 use egui_extras::{Column, TableBuilder};
 
 pub fn main() {
@@ -176,7 +176,7 @@ pub fn main() {
                                 let log_row = parsed_file.get_line(row_index).unwrap();
                                 for cell_index in 0..parsed_file.column_count() {
                                     // If a cell doesn't exist, just create an empty cell
-                                    let mut cell = log_row
+                                    let cell = log_row
                                         .cells()
                                         .get(cell_index)
                                         .unwrap_or(&RichText::new(String::new()))
