@@ -16,11 +16,14 @@ categories = []
 
 [dependencies]
 clap = { version = "4.5.4", features = ["derive"] }
+serde = { version = "^1.0", features = ["derive"] }
+serde_json = "^1.0"
 eframe = "0.27.2"
 egui_extras = "0.27.2"
 fern = "0.6.2"
 log = "0.4.21"
 csv = "1.3.0"
+chrono = "0.4.37"
 
 [[bin]]
 name = "mlv"

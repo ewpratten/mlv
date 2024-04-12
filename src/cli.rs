@@ -9,7 +9,7 @@ use crate::parse::FileParsers;
 #[command(version, about, long_about = None)]
 pub struct Args {
     /// File to read (default: stdin)
-    #[arg(short, long)]
+    #[arg()]
     pub file: Option<PathBuf>,
 
     /// File parsing format
@@ -21,7 +21,7 @@ pub struct Args {
     pub vsync: bool,
 
     /// Window theme
-    #[arg(short, long, default_value = "system")]
+    #[arg(short, long, default_value = "dark")]
     pub theme: Themes,
 
     /// Enable verbose logging
@@ -34,8 +34,8 @@ pub enum Themes {
     /// Light Theme
     Light,
     /// Dark Theme
+    #[default]
     Dark,
     /// System Theme
-    #[default]
     System,
 }

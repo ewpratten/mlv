@@ -31,7 +31,7 @@ pub fn main() {
 
     // Configure the egui window
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default().with_inner_size([800.0, 600.0]),
+        viewport: egui::ViewportBuilder::default().with_inner_size([1000.0, 800.0]),
         vsync: args.vsync,
         follow_system_theme: args.theme == cli::Themes::System,
         default_theme: match args.theme {
