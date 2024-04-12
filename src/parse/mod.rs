@@ -1,7 +1,7 @@
 mod builtin;
 
 use clap::ValueEnum;
-use eframe::egui::{Label, RichText};
+use eframe::egui::{FontFamily, Label, RichText};
 
 /// Represents each type of parser available
 #[derive(Debug, ValueEnum, Clone, Copy, PartialEq, Eq)]
@@ -10,6 +10,8 @@ pub enum FileParsers {
     Spaces,
     /// Comma-separated values
     Csv,
+    /// Simple "LEVEL: MESSAGE" log format
+    LevelMessage,
 }
 
 impl FileParsers {
@@ -18,6 +20,7 @@ impl FileParsers {
         match self {
             FileParsers::Spaces => builtin::spaces::parse_line(line),
             FileParsers::Csv => builtin::csv::parse_line(line),
+            FileParsers::LevelMessage => builtin::level_message::parse_line(line),
         }
     }
 }
@@ -31,7 +34,12 @@ pub struct ParsedLine {
 impl ParsedLine {
     /// Construct a new ParsedLine
     pub fn new(cells: Vec<RichText>) -> Self {
-        Self { cells }
+        Self {
+            cells: cells
+                .iter()
+                .map(|cell| cell.clone().family(FontFamily::Monospace))
+                .collect(),
+        }
     }
 
     /// Get the cells in the line
@@ -108,6 +116,13 @@ impl ParsedPartialFile {
                 layout.size().x
             })
             .collect::<Vec<f32>>()
+    }
+
+    // Get the expected font height
+    pub fn font_height(&self, ui: &mut eframe::egui::Ui) -> f32 {
+        let label = Label::new(RichText::new("A")).wrap(false);
+        let (_, layout, _) = label.layout_in_ui(ui);
+        layout.size().y
     }
 
     /// Get the number of columns

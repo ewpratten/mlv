@@ -10,7 +10,7 @@ use std::{
 
 use clap::Parser;
 use cli::Args;
-use eframe::egui::{self, Id, Label, LayerId, Layout, RichText, Ui};
+use eframe::egui::{self, FontDefinitions, FontFamily, Id, Label, LayerId, Layout, RichText, Ui};
 use egui_extras::{Column, TableBuilder};
 
 pub fn main() {
@@ -46,8 +46,12 @@ pub fn main() {
     // Allocate a shared 2D array to store log rows
     let parsed_file = Arc::new(Mutex::new(parse::ParsedPartialFile::new()));
 
+    // Global state to indicate if we are reading live data
+    let is_data_live = Arc::new(std::sync::atomic::AtomicBool::new(true));
+
     // Start a thread that reads from the file and updates the parsed file in memory
     let parsed_file_clone = parsed_file.clone();
+    let is_data_live_clone = is_data_live.clone();
     std::thread::spawn(move || {
         // Either read from a file or stdin
         let file_reader = if let Some(file) = args.file {
@@ -85,6 +89,7 @@ pub fn main() {
             }
         }
         log::debug!("File closed");
+        is_data_live_clone.store(false, std::sync::atomic::Ordering::SeqCst);
     });
 
     // Start the render task
@@ -92,10 +97,22 @@ pub fn main() {
         // Top bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             egui::menu::bar(ui, |ui| {
+                // Add menu buttons
                 ui.menu_button("File", |ui| {
                     if ui.button("Close").clicked() {
                         ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                     }
+                });
+
+                // On the right side, show if the data is live
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    let is_data_live = is_data_live.load(std::sync::atomic::Ordering::SeqCst);
+                    let label = if is_data_live {
+                        RichText::new("Live").background_color(egui::Color32::LIGHT_GREEN).color(egui::Color32::BLACK)
+                    } else {
+                        RichText::new("Paused").background_color(egui::Color32::GRAY).color(egui::Color32::BLACK)
+                    };
+                    ui.label(label);
                 });
             });
         });
@@ -146,22 +163,30 @@ pub fn main() {
                     // Fill in the table body
                     table.body(|body| {
                         // Render each row
-                        body.rows(30.0, parsed_file.len(), |mut row| {
-                            let row_index = row.index();
-                            let log_row = parsed_file.get_line(row_index).unwrap();
-                            for cell_index in 0..parsed_file.column_count() {
-                                // If a cell doesn't exist, just render an empty cell
-                                let cell = log_row
-                                    .cells()
-                                    .get(cell_index)
-                                    .unwrap_or(&RichText::new(String::new()))
-                                    .clone();
-                                row.col(|ui| {
-                                    let label = Label::new(cell).wrap(false);
-                                    ui.add(label);
-                                });
-                            }
-                        });
+                        body.rows(
+                            parsed_file.font_height(&mut fake_ui),
+                            parsed_file.len(),
+                            |mut row| {
+                                let row_index = row.index();
+                                let log_row = parsed_file.get_line(row_index).unwrap();
+                                for cell_index in 0..parsed_file.column_count() {
+                                    // If a cell doesn't exist, just create an empty cell
+                                    let mut cell = log_row
+                                        .cells()
+                                        .get(cell_index)
+                                        .unwrap_or(&RichText::new(String::new()))
+                                        .clone();
+
+                                    // Add the cell to the row
+                                    row.col(|ui| {
+                                        // Generate the label
+                                        let label = Label::new(cell).wrap(false);
+
+                                        ui.add(label);
+                                    });
+                                }
+                            },
+                        );
                     });
                 });
         });
