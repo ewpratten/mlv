@@ -28,6 +28,7 @@ pub fn main() {
         .chain(std::io::stdout())
         .apply()
         .unwrap();
+    log::info!("Starting Mini Log Viewer");
 
     // Configure the egui window
     let options = eframe::NativeOptions {
@@ -108,9 +109,13 @@ pub fn main() {
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     let is_data_live = is_data_live.load(std::sync::atomic::Ordering::SeqCst);
                     let label = if is_data_live {
-                        RichText::new("Live").background_color(egui::Color32::LIGHT_GREEN).color(egui::Color32::BLACK)
+                        RichText::new("Live")
+                            .background_color(egui::Color32::LIGHT_GREEN)
+                            .color(egui::Color32::BLACK)
                     } else {
-                        RichText::new("Paused").background_color(egui::Color32::GRAY).color(egui::Color32::BLACK)
+                        RichText::new("Paused")
+                            .background_color(egui::Color32::GRAY)
+                            .color(egui::Color32::BLACK)
                     };
                     ui.label(label);
                 });

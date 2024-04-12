@@ -13,7 +13,7 @@ pub struct Args {
     pub file: Option<PathBuf>,
 
     /// File parsing format
-    #[arg(short, long, required = true)]
+    #[arg(short, long, default_value = "raw")]
     pub parser: FileParsers,
 
     /// Enable V-sync

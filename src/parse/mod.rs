@@ -6,6 +6,8 @@ use eframe::egui::{FontFamily, Label, RichText};
 /// Represents each type of parser available
 #[derive(Debug, ValueEnum, Clone, Copy, PartialEq, Eq)]
 pub enum FileParsers {
+    /// Raw text
+    Raw,
     /// Space-separated values
     Spaces,
     /// Comma-separated values
@@ -24,6 +26,7 @@ impl FileParsers {
             FileParsers::Csv => builtin::csv::parse_line(line),
             FileParsers::LevelMessage => builtin::level_message::parse_line(line),
             FileParsers::JournalJson => builtin::journal_json::parse_line(line),
+            FileParsers::Raw => builtin::raw::parse_line(line),
         }
     }
 }
