@@ -12,6 +12,8 @@ pub enum FileParsers {
     Spaces,
     /// Comma-separated values
     Csv,
+    /// Tab-separated values
+    Tsv,
     /// Simple "LEVEL: MESSAGE" log format
     LevelMessage,
     /// Journalctl JSON output
@@ -24,6 +26,7 @@ impl FileParsers {
         match self {
             FileParsers::Spaces => builtin::spaces::parse_line(line),
             FileParsers::Csv => builtin::csv::parse_line(line),
+            FileParsers::Tsv => builtin::tsv::parse_line(line),
             FileParsers::LevelMessage => builtin::level_message::parse_line(line),
             FileParsers::JournalJson => builtin::journal_json::parse_line(line),
             FileParsers::Raw => builtin::raw::parse_line(line),
